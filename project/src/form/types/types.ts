@@ -9,9 +9,9 @@ export type IErrorText = string;
 export type IErrorMsg = [IErrorText, IErrorParams?];
 
 export type Constructor<T> = new (...args: any) => T;
-export interface IConfig<T extends object> {
-    form?: IFormProps<T>;
-    fields?: Record<keyof T, IFieldProps<unknown, T>>
+
+export interface IConfig<T extends object> extends IFormProps<T> {
+    fields?: Record<keyof T, IFieldProps<unknown, T>>;
 }
 
 export interface IFieldStore<P, T extends object> {
@@ -46,6 +46,7 @@ export type IFormProps<T extends object> = Omit<React.DetailedHTMLProps<React.Fo
     autoGenerate?: boolean; // if it is enabled then auto generate the input children for the form
     store?: FormContextStore<T>; // if we want provide an external formContextStore
     entity?: T;
+    config?: IConfig<T>;
     showErrors?: boolean; // show form errors
 
     debounceTime?: number; // if this is setted then submit method called with debounce
@@ -88,7 +89,7 @@ export type IInputProps<V, T extends object> = React.DetailedHTMLProps<React.For
     accept?: string;
     multiple?: boolean;
     checked?: boolean;
-    fileCmp?: (onClick: () => void) => JSX.Element;
+    FileCmp?: (props: { onClick: () => void, value?: V }) => JSX.Element;
 
     rule?: keyof IRules;
     required?: boolean;

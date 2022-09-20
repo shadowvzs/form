@@ -157,9 +157,9 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         }
 
         // remove props which isn't for the dom
-        const blacklistedProps = ['Cmp', 'translateFn'];
+        const blacklistedProps = ['Cmp', 'translateFn', 'validators', 'cast'];
         if (props.type === 'file') {
-            if ((props as IInputProps<unknown, T>).fileCmp) {
+            if ((props as IInputProps<unknown, T>).FileCmp) {
                 props.style = { display: 'none' };
             }
             blacklistedProps.push('value', 'onChange');
@@ -189,12 +189,12 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         const files = node instanceof HTMLInputElement && node.files;
         if (type === 'file') {
             if (files) {
-                this.setValue(Array.from(files));
+                this.setValue(this._props.multiple ? Array.from(files) : files[0]);
             }
         } else if (type === 'checkbox') {
             this.setValue(!this.value);
         } else {
-            this.setValue(value);
+            this.setValue(value || defaultValues[type!] || '');
         }
     }
 
@@ -213,7 +213,7 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
 
     private onBlurHandler = (ev: FocusEvent<HTMLInputElement | HTMLSelectElement | any>) => {
         if (['submit', 'reset', 'checkbox', 'radio'].includes(this._props.type!)) { return; }
-        const node = ev.currentTarget.value;
+        const node = ev.currentTarget;
         this.setTypeBasedValue(node);
         if (this._props.onBlur) {
             this._props.onBlur(ev);

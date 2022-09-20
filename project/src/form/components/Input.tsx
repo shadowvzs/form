@@ -19,12 +19,13 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
         labelStyle,
         labelClassName,
         showErrors,
-        fileCmp,
+        FileCmp,
         errorRender,
+        options,
         ...inputProps
     } = fieldStore.getProps() as IInputProps<P, T>;
     const id = fieldStore.id;
-    const { label, options, type } = inputProps;
+    const { label, type } = inputProps;
 
     const inputRef = React.useRef<HTMLInputElement>(null);
     React.useLayoutEffect(() => {
@@ -38,7 +39,6 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
                 {label && <legend>{label}</legend>}
                 {options.map(({ label, value }, idx) => (
                     <div key={idx}>
-                        {label && <label htmlFor={id + '-' + idx} style={labelStyle} className={cn('form-label', labelClassName)}>{label}</label>}
                         <input
                             className={cn('form-input', className)}
                             id={id + '-' + idx}
@@ -46,6 +46,7 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
                             checked={value === fieldStore.value}
                             value={value}
                         />
+                        {label && <label htmlFor={id + '-' + idx} style={labelStyle} className={cn('form-label', labelClassName)}>{label}</label>}
                     </div>
                 ))}
             </fieldset>
@@ -53,7 +54,12 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
     }
 
     return (
-        <div style={fieldStyle} className={cn('form-field', fieldStore.errors.length > 0 && 'error', fieldClassName)}>
+        <div
+            style={fieldStyle}
+            className={cn('form-field', fieldStore.errors.length > 0 && 'error', fieldClassName)}
+            data-type={type || 'text'}
+            title={fieldStore.translatedErrors.join('\r\n') || ''}
+        >
             {label && <label htmlFor={id} style={labelStyle} className={cn('form-label', labelClassName)}>{label}</label>}
             <input
                 className={cn('form-input', className)}
@@ -61,7 +67,7 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
                 ref={inputRef}
                 {...inputProps}
             />
-            {fileCmp && fileCmp(() => { inputRef.current?.click(); })}
+            {FileCmp && <FileCmp onClick={() => { inputRef.current?.click(); }} value={fieldStore.value} />}
             {options && (
                 <datalist id={id + 'List'}>
                     {options.map(({ label, value }, idx) => (<option value={value} key={idx}>{label}</option>))}

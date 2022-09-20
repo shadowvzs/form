@@ -2,21 +2,12 @@
     padding: 0;
     margin: 0;
     outline: none;
-    list-style: none;
     box-sizing: border-box;
+    list-style: none;
+    text-decoration: none;
 }
 
 html,
-body,
-#root {
+body {
     height: 100%;
-    background: linear-gradient(to bottom, #fff, #aaf);
-}
-
-.main {
-    padding: 16px;
-}
-
-.content {
-    margin: 0 16px;
 }

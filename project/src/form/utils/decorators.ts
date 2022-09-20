@@ -82,9 +82,9 @@ export function type(type: IFieldProps<unknown, object>['type']) {
     }
 }
 
-export function props(props: Partial<IFieldProps<unknown, object>>) {
-    return function <T extends object = any>(target: T, propertyKey: keyof T) {
-        const field = getFieldSettings<unknown, T>(target, propertyKey);
+export function props<T extends object = any, V = unknown>(props: Partial<IFieldProps<V, object>>) {
+    return function (target: T, propertyKey: keyof T) {
+        const field = getFieldSettings<V, T>(target, propertyKey);
         Object.assign(field, props);
     }
 }

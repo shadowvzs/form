@@ -37,7 +37,12 @@ class FormContextStore<T extends object> {
     constructor(private _props: IFormProps<T>) {
         makeObservable(this);
         this.errorStore = new ErrorStore<T>();
-        this._formProps = { ..._props };
+        if (_props.config) {
+            const { fields, ...formProps } = _props.config;
+            this._formProps = formProps;
+            this._fieldsProps = fields || {};
+        }
+        this._formProps = { ..._props, ...this._formProps };
         this.setPropsFromEntity(_props.entity);
         (window as any)['form'] = this;
     }
@@ -59,7 +64,7 @@ class FormContextStore<T extends object> {
     private setPropsFromEntity(entity?: T) {
         if (!entity) { return; }
         this._formProps = { ...this._formProps, ...getFormSettings(entity) };
-        this._fieldsProps = getFieldsSettings(entity);
+        this._fieldsProps = { ...this._fieldsProps, ...getFieldsSettings(entity) };
         (Object.keys(this._fieldsProps) as (keyof T)[]).forEach((key) => {
             this._fieldsProps[key] = {
                 ...this.defaultFieldValues(),

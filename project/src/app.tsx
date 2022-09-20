@@ -1,5 +1,5 @@
 import React from 'react';
-import RegisterForm from './examples/class';
+import RegisterForm from './examples/withDecorators';
 
 function App() {
 
