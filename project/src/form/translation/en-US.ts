@@ -5,7 +5,13 @@ const translations = {
     'TOO_HIGH': 'Is higher than %0',
     'TOO_SHORT': 'Is shorter than %0',
     'TOO_LONG': 'Is longer than %0',
-    'INVALID_FORMAT': 'Invalid format (%0)'
+    'INVALID_FORMAT': 'Invalid format (%0)',
+    'TOO_SMALL_FILE': 'File(s) size is smaller than %0',
+    'TOO_BIG_FILE': 'File(s) size is bigger than %0',
+    'INVALID_FILE': 'Not accepted file type (must be: %0)',
+    'TOO_LESS': 'Must be atleast %0 item',
+    'TOO_MUCH': 'Cannot be more than %0 item',
+    'MUST_BE_CHECKED': 'Checkbox must be checked in'
 } as Record<string, string>;
 
 export default translations;

@@ -10,8 +10,9 @@ import type {
     IValidator,
     IValue
 } from '../types/types';
-import { validate } from '../utils/RegExp';
+
 import Guid from '../utils/Guid';
+import validatorMap from '../validators/validatorMap';
 
 const defaultValues = {
     submit: 'submit',
@@ -258,28 +259,25 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
             maxLength = Number.MAX_SAFE_INTEGER,
             rule,
             required,
+            type,
         } = this._props as IInputProps<P, T>;
 
         if (required) {
-            validators.push(
-                (value: IValue) => !value.trim() && ['IS_REQUIRED']
-            );
+            validators.push(validatorMap.required());
         }
 
         if (minLength) {
-            validators.push(
-                (value: IValue) => value.length < minLength && ['TOO_SHORT', [minLength]]
-            );
+            validators.push(validatorMap.minLength(minLength));
         }
         if (maxLength) {
-            validators.push(
-                (value: IValue) => value.length > maxLength && ['TOO_LONG', [maxLength]]
-            );
+            validators.push(validatorMap.maxLength(maxLength));
         }
         if (rule) {
-            validators.push(
-                (value: IValue) => !validate(value, rule) && ['INVALID_FORMAT', [rule]]
-            );
+            validators.push(validatorMap.rule(rule));
+        }
+
+        if (type === 'email' && rule !== 'EMAIL') {
+            validators.push(validatorMap.rule('EMAIL'));
         }
     }
 
@@ -291,23 +289,15 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         } = this._props as IInputProps<P, T>;
 
         if (required) {
-            validators.push(
-                (value: IValue) => !value.trim() && ['IS_REQUIRED']
-            );
+            validators.push(validatorMap.required());
         }
 
-        validators.push(
-            (value: IValue) => value && isNaN(this.getParsedValue(value)) && ['NOT_A_NUMBER']
-        );
+        validators.push(validatorMap.isNumber());
         if (min) {
-            validators.push(
-                (value: IValue) => this.getParsedValue(value) < min && ['TOO_LOW', [min]]
-            );
+            validators.push(validatorMap.min(Number(min)));
         }
         if (max) {
-            validators.push(
-                (value: IValue) => this.getParsedValue(value) > max && ['TOO_HIGH', [max]]
-            );
+            validators.push(validatorMap.max(Number(max)));
         }
     }
 
@@ -321,9 +311,7 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         } = this._props as IInputProps<P, T>;
 
         if (required) {
-            validators.push(
-                (value: IValue) => (!value || !value.length) && ['IS_REQUIRED']
-            );
+            validators.push(validatorMap.required());
         }
     }
 

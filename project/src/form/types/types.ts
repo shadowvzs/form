@@ -1,6 +1,6 @@
 import ErrorStore from "../store/ErrorStore";
 import type FormContextStore from "../store/FormStore";
-import type { IRules } from "../utils/RegExp";
+import type { IRules } from "../validators/RegExp";
 
 export type IValue = any;
 
