@@ -1,4 +1,6 @@
 import { IConfig } from "../../form/types/types";
+import validatorMap from "../../form/validators/validatorMap";
+import CustomFileUploader from "./CustomFileUploader";
 import RegisterDto from "./RegisterDto";
 
 const config = {
@@ -28,17 +30,24 @@ const config = {
         agree: {
             type: 'checkbox',
             label: 'I Agree',
-            validators: [agree => !agree && ['Please check in the agreement']],
+            validators: [
+                validatorMap.isChecked('Please check in the agreement')
+            ],
             value: false
         },
         sex: {
             type: 'radio',
-            options: [{ label: 'Male', value: 'm' }, { label: 'Female', value: 'f' }]
+            options: [
+                { label: 'Male', value: 'm' },
+                { label: 'Female', value: 'f' }
+            ]
         },
         image: {
             type: 'file',
+            FileCmp: CustomFileUploader,
             validators: [
-                agree => !agree && ['Please check in the agreement']
+                validatorMap.allowedType('image'),
+                validatorMap.maxSize(2 * 1024 * 1024)
             ],
         }
     }

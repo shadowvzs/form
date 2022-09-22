@@ -1,35 +1,35 @@
-.register-form {
-    background: rgba(0, 0, 0, 0.15);
+.register-form2 {
+    background: rgba(0, 0, 255, 0.1);
     border: 1px solid rgba(0, 0, 0, 0.2);
-    margin: auto;
+    margin: 16px;
     max-width: 387px;
     padding: 16px;
     border-radius: 8px;
     font-size: 16px;
 }
 
-.register-form h1 {
+.register-form2 h1 {
     text-align: center;
     padding-bottom: 16px;
 }
 
 
-.register-form .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]):not(fieldset) {
+.register-form2 .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]):not(fieldset) {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 4px 0;
 }
 
-.register-form .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]) input {
+.register-form2 .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]) input {
     padding: 4px;
 }
 
-.register-form .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]) input:focus {
+.register-form2 .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]) input:focus {
     background-color: #eff;
 }
 
-.register-form .custom-form .form-field[data-type="checkbox"] {
+.register-form2 .custom-form .form-field[data-type="checkbox"] {
     justify-content: center;
     text-align: center;
     display: flex;
@@ -38,36 +38,36 @@
     padding-top: 6px;
 }
 
-.register-form .custom-form .form-field[data-type="reset"],
-.register-form .custom-form .form-field[data-type="submit"] {
+.register-form2 .custom-form .form-field[data-type="reset"],
+.register-form2 .custom-form .form-field[data-type="submit"] {
     position: relative;
     display: inline-block;
     margin-top: 8px;
 }
 
-.register-form input[type="reset"],
-.register-form input[type="submit"] {
+.register-form2 input[type="reset"],
+.register-form2 input[type="submit"] {
     padding: 2px 6px;
     margin: 0 8px;
 }
 
-.register-form fieldset {
+.register-form2 fieldset {
     text-align: center;
     padding: 8px;
     margin: 8px 0;
 }
 
-.register-form fieldset>div {
+.register-form2 fieldset>div {
     width: 100px;
     display: inline-block;
     text-align: left;
 }
 
-.register-form .form-field.error input {
+.register-form2 .form-field.error input {
     border-color: red;
 }
 
-.register-form .form-errors {
+.register-form2 .form-errors {
     padding-top: 16px;
     color: red;
     font-size: 12px;

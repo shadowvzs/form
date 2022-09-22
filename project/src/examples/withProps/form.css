@@ -1,0 +1,74 @@
+.register-form3 {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    margin: 16px;
+    max-width: 387px;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.register-form3 h1 {
+    text-align: center;
+    padding-bottom: 16px;
+}
+
+
+.register-form3 .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]):not(fieldset) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.register-form3 .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]) input {
+    padding: 4px;
+}
+
+.register-form3 .custom-form .form-field:not([data-type="checkbox"]):not([data-type="reset"]):not([data-type="submit"]) input:focus {
+    background-color: #eff;
+}
+
+.register-form3 .custom-form .form-field[data-type="checkbox"] {
+    justify-content: center;
+    text-align: center;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 8px;
+    padding-top: 6px;
+}
+
+.register-form3 .custom-form .form-field[data-type="reset"],
+.register-form3 .custom-form .form-field[data-type="submit"] {
+    position: relative;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.register-form3 input[type="reset"],
+.register-form3 input[type="submit"] {
+    padding: 2px 6px;
+    margin: 0 8px;
+}
+
+.register-form3 fieldset {
+    text-align: center;
+    padding: 8px;
+    margin: 8px 0;
+}
+
+.register-form3 fieldset>div {
+    width: 100px;
+    display: inline-block;
+    text-align: left;
+}
+
+.register-form3 .form-field.error input {
+    border-color: red;
+}
+
+.register-form3 .form-errors {
+    padding-top: 16px;
+    color: red;
+    font-size: 12px;
+}

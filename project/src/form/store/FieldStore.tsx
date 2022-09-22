@@ -320,8 +320,7 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         const props = {
             cast: inputProps.cast || inputType2VarType[_props.type!],
             ..._props,
-        }
-
+        };
         this._props = props;
     }
 }

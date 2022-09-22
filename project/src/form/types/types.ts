@@ -1,4 +1,5 @@
 import ErrorStore from "../store/ErrorStore";
+import FieldStore from "../store/FieldStore";
 import type FormContextStore from "../store/FormStore";
 import type { IRules } from "../validators/RegExp";
 
@@ -89,7 +90,7 @@ export type IInputProps<V, T extends object> = React.DetailedHTMLProps<React.For
     accept?: string;
     multiple?: boolean;
     checked?: boolean;
-    FileCmp?: (props: { onClick: () => void, value?: V }) => JSX.Element;
+    FileCmp?: (props: { onClick: () => void, value?: V, fieldStore: IFieldStore<V, T> }) => JSX.Element;
 
     rule?: keyof IRules;
     required?: boolean;

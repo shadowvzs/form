@@ -53,6 +53,7 @@ class FormContextStore<T extends object> {
             type: 'text',
             value: '',
             translateFn: translate,
+            showErrors: this._formProps.showErrors !== true
         };
     };
 
@@ -67,7 +68,6 @@ class FormContextStore<T extends object> {
         this._fieldsProps = { ...this._fieldsProps, ...getFieldsSettings(entity) };
         (Object.keys(this._fieldsProps) as (keyof T)[]).forEach((key) => {
             this._fieldsProps[key] = {
-                ...this.defaultFieldValues(),
                 name: key,
                 value: entity[key],
                 ...this._fieldsProps[key]
@@ -120,7 +120,7 @@ class FormContextStore<T extends object> {
         const name = inputProps.name as keyof T;
         const fieldStore = new FieldStore<P, T>(
             {
-                showErrors: this._formProps.showErrors !== true,
+                ...this.defaultFieldValues(),
                 ...this._fieldsProps[name],
                 ...inputProps
             } as IFieldProps<P, T>,

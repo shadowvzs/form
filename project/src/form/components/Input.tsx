@@ -67,7 +67,7 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
                 ref={inputRef}
                 {...inputProps}
             />
-            {FileCmp && <FileCmp onClick={() => { inputRef.current?.click(); }} value={fieldStore.value} />}
+            {FileCmp && <FileCmp onClick={() => { inputRef.current?.click(); }} fieldStore={fieldStore} value={fieldStore.value} />}
             {options && (
                 <datalist id={id + 'List'}>
                     {options.map(({ label, value }, idx) => (<option value={value} key={idx}>{label}</option>))}

@@ -15,7 +15,7 @@ export function createCustomChildren<T extends object>(fieldProps: Partial<Recor
         entries.push(['reset', { Cmp: Input, type: 'reset', value: 'reset', name: 'reset' }]);
     }
     const elems = entries.map(([key, props], idx) => (
-        <Custom key={key + idx} {...props as ICustomProps<IValue, T>} />
+        <Custom key={key + idx} {...Object.assign({ Cmp: Input, name: key }, props) as unknown as ICustomProps<IValue, T>} />
     ));
 
     return (<> {elems} {children} </>);

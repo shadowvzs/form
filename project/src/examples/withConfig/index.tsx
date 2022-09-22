@@ -7,8 +7,8 @@ import delayPromise from '../../form/utils/delayPromise';
 
 // customizations
 import RegisterDto from './RegisterDto';
-import "./form.css";
 import config from './config';
+import "./form.css";
 
 const RegisterForm = () => {
 
@@ -21,8 +21,8 @@ const RegisterForm = () => {
     }, [])
 
     return (
-        <div className='register-form'>
-            <h1> "With Decorators" form </h1>
+        <div className='register-form2'>
+            <h1> "With Config" form </h1>
             <Form<RegisterDto>
                 config={config}
                 onSubmit={onSubmit}

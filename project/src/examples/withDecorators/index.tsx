@@ -23,7 +23,7 @@ const RegisterForm = () => {
     }, [])
 
     return (
-        <div className='register-form'>
+        <div className='register-form1'>
             <h1> "With Decorators" form </h1>
             <Form<RegisterDto>
                 entity={registerDto}
