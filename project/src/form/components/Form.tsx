@@ -9,7 +9,8 @@ import type { IFormProps } from '../types/types';
 import ErrorListRender from './ErrorMessage';
 
 function Form<T extends object>({ store: externalStore, errorRender, ...props }: IFormProps<T>) {
-    const store = useConstant(() => externalStore || new FormContextStore<T>(props));
+    const store = useConstant(() => externalStore ? externalStore.updateProps(props) : new FormContextStore<T>(props));
+
     const { showErrors, ...formProps } = store.getProps();
     const showErrorsSection = store.errorStore.totalSize > 0 && showErrors;
     const errors = store.errorsValues;

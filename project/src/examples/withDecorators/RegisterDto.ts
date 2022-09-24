@@ -1,5 +1,5 @@
 import { allowedType, fileCmp, Form, label, minLength, maxSize, options, required, rule, type, isChecked } from '../../form/utils/decorators';
-import CustomFileUploader from './CustomFileUploader';
+import CustomFileUploader from '../common/CustomFileUploader';
 
 // the form decorator is optional but we can provide here the constant configs (props)
 @Form({ autoGenerate: true, showErrors: true })
@@ -33,7 +33,7 @@ class RegisterDto {
 
     @type('radio') // it is same than: @props({ type: 'radio', options: [{ label: 'Male', value: 'm' }, { label: 'Female', value: 'f' }] })
     @options(() => [['m', 'Male'], ['f', 'Female']])
-    public sex: number;
+    public sex: string;
 
     @type('file')
     @allowedType('image')

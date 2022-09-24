@@ -10,6 +10,7 @@ import Input from '../components/Input';
 import translate from '../utils/translate';
 import { createCustomChildren } from '../components/Custom';
 import Guid from '../utils/Guid';
+import ArrayValueMap from '../utils/ArrayValueMap';
 
 const FormValidationKey = '*form*';
 
@@ -19,11 +20,11 @@ class FormContextStore<T extends object> {
 
     public id = Guid.newGuid();
 
-    public fields: IFieldStore<IValue, T>[] = [];
+    private _fieldMap: ArrayValueMap<IFieldStore<IValue, T>> = new ArrayValueMap<IFieldStore<IValue, T>>('name');
 
     @computed
     public get isDirty(): boolean {
-        return this.fields.some(x => x.isDirty);
+        return this._fieldMap.some(x => x.isDirty);
     }
 
     public errorStore: ErrorStore<T>;
@@ -37,14 +38,20 @@ class FormContextStore<T extends object> {
     constructor(private _props: IFormProps<T>) {
         makeObservable(this);
         this.errorStore = new ErrorStore<T>();
-        if (_props.config) {
-            const { fields, ...formProps } = _props.config;
+        this.updateProps(_props);
+    }
+
+    public updateProps(_props: IFormProps<T>) {
+        const props: IFormProps<T> = { ...this._props, ..._props };
+        if (props.config) {
+            const { fields, ...formProps } = props.config;
             this._formProps = formProps;
             this._fieldsProps = fields || {};
         }
-        this._formProps = { ..._props, ...this._formProps };
-        this.setPropsFromEntity(_props.entity);
-        (window as any)['form'] = this;
+        this._formProps = { ...props, ...this._formProps };
+        this._props = props;
+        this.setPropsFromEntity(props.entity);
+        return this;
     }
 
     public defaultFieldValues = () => {
@@ -79,7 +86,7 @@ class FormContextStore<T extends object> {
 
     @action.bound
     public validate(values: T): void {
-        this.fields
+        this._fieldMap
             .filter(x => !['reset', 'submit'].includes(x.name))
             .forEach(x => { x.setIsTouched(true); x.validate(values[x.name as keyof T]) });
         this.errorsValues = this.errorStore.list;
@@ -126,12 +133,16 @@ class FormContextStore<T extends object> {
             } as IFieldProps<P, T>,
             this.createFieldHelpers(name)
         );
-        this.fields.push(fieldStore);
+        this._fieldMap.add(fieldStore);
         return fieldStore;
     }
 
+    public addFieldIfNotExist<P>(inputProps: IFieldProps<P, T>): IFieldStore<P, T> {
+        return this._fieldMap.valueMap[inputProps.name] || this.addField(inputProps);
+    }
+
     public onReset = (): void => {
-        Object.values<IFieldStore<IValue, T>>(this.fields).forEach(x => x.onReset());
+        Object.values<IFieldStore<IValue, T>>(this._fieldMap).forEach(x => x.onReset());
     }
 
     public getProps() {
@@ -149,7 +160,7 @@ class FormContextStore<T extends object> {
         }
 
         // remove props which isn't for the dom
-        const blacklistedProps = ['debounceTime', 'autoGenerate', 'translateFn'];
+        const blacklistedProps = ['debounceTime', 'autoGenerate', 'translateFn', 'entity', 'config'];
         blacklistedProps.forEach(propName => Reflect.deleteProperty(props, propName));
         return props;
     }
@@ -173,7 +184,7 @@ class FormContextStore<T extends object> {
         }
         this._props.onSubmit(values).then(x => {
             if (!x) { return; }
-            this.fields.forEach(field => {
+            this._fieldMap.forEach(field => {
                 field.initialValue = field.value;
                 field.setIsDirty(false);
                 field.setIsTouched(false);

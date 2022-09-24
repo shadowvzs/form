@@ -36,7 +36,7 @@ export interface IFieldStore<P, T extends object> {
     onReset: () => void;
     getParsedValue: () => IValue;
 
-    getProps: () => IFieldProps<P, T>;
+    getProps: (blacklistedProps?: string[]) => IFieldProps<P, T>;
     validate: (value?: IValue) => boolean;
 
     setTypeBasedValue: (node: HTMLInputElement | HTMLSelectElement) => void;

@@ -4,13 +4,13 @@ import React from 'react';
 // generic component
 import Form from '../../form/components/Form';
 import delayPromise from '../../form/utils/delayPromise';
+import validatorMap from '../../form/validators/validatorMap';
+import Input from '../../form/components/Input';
+import CustomFileUploader from '../common/CustomFileUploader';
 
 // customizations
 import RegisterDto from './RegisterDto';
 import "./form.css";
-import Input from '../../form/components/Input';
-import validatorMap from '../../form/validators/validatorMap';
-import CustomFileUploader from './CustomFileUploader';
 
 const RegisterForm = () => {
 
@@ -26,7 +26,7 @@ const RegisterForm = () => {
         <div className='register-form3'>
             <h1> "With Props" form </h1>
             <Form<RegisterDto>
-                //showErrors
+                showErrors
                 onSubmit={onSubmit}
             >
                 <Input name='username' rule='ALPHA_NUM' label='Username: ' />

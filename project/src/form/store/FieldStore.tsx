@@ -129,7 +129,7 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         return this.errors.length === 0;
     }
 
-    public getProps() {
+    public getProps(blacklistedProps: string[] = []) {
         const props = {
             type: 'text',
             checked: this._props['type'] === 'checkbox' ? ['1', 1, true, 'true'].includes(this.value) : undefined,
@@ -158,7 +158,7 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         }
 
         // remove props which isn't for the dom
-        const blacklistedProps = ['Cmp', 'translateFn', 'validators', 'cast'];
+        blacklistedProps = ['Cmp', 'translateFn', 'validators', 'cast', ...blacklistedProps];
         if (props.type === 'file') {
             if ((props as IInputProps<unknown, T>).FileCmp) {
                 props.style = { display: 'none' };
