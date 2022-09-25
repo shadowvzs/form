@@ -1,4 +1,4 @@
-import { label, minLength, required, rule, type } from '../../form/utils/decorators';
+import { isSame, label, minLength, required, rule, type } from '../../form/utils/decorators';
 import Guid from '../../form/utils/Guid';
 
 // the form decorator is optional but we can provide here the constant configs (props)
@@ -26,6 +26,11 @@ class RegisterDto {
     @minLength(8)
     @label('Password: ')
     public password: string = '';
+
+    @type('password')
+    @isSame('password')
+    @label('Confirm: ')
+    public password2: string = '';
 
     public agree: boolean = false;
     public sex: string = 'f'; // example a default value

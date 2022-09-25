@@ -1,4 +1,4 @@
-import type { ICommonInputProps, IFieldProps, IFormProps, IInputProps, IValidator, IValue } from "../types/types";
+import type { ICommonInputProps, IFieldProps, IFormProps, IInputProps, IValidator, IValue, IValueOrGetter } from "../types/types";
 import validatorMap from "../validators/validatorMap";
 import { IRules } from "../validators/RegExp";
 
@@ -128,6 +128,12 @@ export function maxCount<V = unknown[], T extends object = any>(count: number) {
 export function allowedType<V = File, T extends object = any>(typeOrExtension: string) {
     return function (target: T, propertyKey: keyof T) {
         addValidator<V, T>(target, propertyKey, validatorMap.allowedType<V>(typeOrExtension));
+    };
+}
+
+export function isSame<V = unknown, T extends object = any>(valueOrGetter: IValueOrGetter<T>) {
+    return function (target: T, propertyKey: keyof T) {
+        addValidator<V, T>(target, propertyKey, validatorMap.isSame<T>(valueOrGetter));
     };
 }
 // ------ Validators - END ------- 

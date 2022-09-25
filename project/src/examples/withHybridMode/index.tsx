@@ -28,7 +28,6 @@ const RegisterForm = observer(() => {
     }, [])
 
     const formStore = useConstant(() => new FormStore({ onSubmit }));
-    const userNameFieldStore = formStore.addFieldIfNotExist<string>({ name: 'username' });
     const registerDto = useConstant(() => new RegisterDto());
 
     return (
@@ -42,12 +41,13 @@ const RegisterForm = observer(() => {
                 onSubmit={onSubmit}
             >
                 <Custom<string, RegisterDto> Cmp={CustomUsernameInput} name='username' />
-                <Input name='fullname' />
-                <Input name='email' />
-                <Input name='password' />
-                <Input name='agree' type='checkbox' label='I Agree: ' value={false} />
-                <Input name='sex' type='radio' />
-                <Input name='image' type='file' FileCmp={CustomFileUploader} />
+                <Input<string, RegisterDto> name='fullname' />
+                <Input<string, RegisterDto> name='email' />
+                <Input<string, RegisterDto> name='password' />
+                <Input<string, RegisterDto> name='password2' />
+                <Input<Boolean, RegisterDto> name='agree' type='checkbox' label='I Agree: ' value={false} />
+                <Input<string, RegisterDto> name='sex' type='radio' />
+                <Input<File, RegisterDto> name='image' type='file' FileCmp={CustomFileUploader} />
 
                 <Input name='reset' value='Reset' type='reset' />
                 <Input name='submit' value='Submit' type='submit' />

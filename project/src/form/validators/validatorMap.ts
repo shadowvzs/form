@@ -1,6 +1,6 @@
 import { sizeFormatter } from '../utils/size-formatter';
 import { IRules, validate } from './RegExp';
-import type { IErrorMsg, IValue } from '../types/types';
+import type { IErrorMsg, IValue, IValueOrGetter } from '../types/types';
 
 const validatorMap = {
     minSize: <V>(size: number, errorMsg: string = 'TOO_SMALL_FILE') => (value: V) => {
@@ -72,6 +72,10 @@ const validatorMap = {
             (typeof value === 'string' && !value.trim()) ||
             (Array.isArray(value) && !value.length)
         ) && [errorMsg] as IErrorMsg;
+    },
+    isSame: <T extends object>(valueOrGetter: IValueOrGetter<T>, errorMsg: string = 'NOT_SAME') => (value: IValue, obj: T) => {
+        const myValue = typeof valueOrGetter === 'string' ? (Reflect.has(obj, valueOrGetter) ? Reflect.get(obj, valueOrGetter) : valueOrGetter) : valueOrGetter();
+        return myValue !== value && [errorMsg, [myValue, value]] as IErrorMsg;
     },
 };
 

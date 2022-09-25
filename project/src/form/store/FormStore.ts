@@ -16,7 +16,7 @@ const FormValidationKey = '*form*';
 
 class FormContextStore<T extends object> {
     private _formProps: Partial<IFormProps<T>> = {};
-    private _fieldsProps: Partial<Record<keyof T, IFieldProps<IValue, T>>> = {};
+    private _fieldsProps: Partial<Record<keyof T, Partial<IFieldProps<IValue, T>>>> = {};
 
     public id = Guid.newGuid();
 

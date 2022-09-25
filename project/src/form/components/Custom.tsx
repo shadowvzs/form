@@ -8,7 +8,7 @@ import type { ICustomProps, IFieldProps, IFieldStore, IValue } from '../types/ty
 import type FormContextStore from '../store/FormStore';
 import Input from './Input';
 
-export function createCustomChildren<T extends object>(fieldProps: Partial<Record<keyof T, IFieldProps<IValue, T>>>, children?: React.ReactNode) {
+export function createCustomChildren<T extends object>(fieldProps: Partial<Record<keyof T, Partial<IFieldProps<IValue, T>>>>, children?: React.ReactNode) {
     const entries = Object.entries(fieldProps);
     if (React.Children.count(children) === 0) {
         entries.push(['submit', { Cmp: Input, type: 'submit', value: 'submit', name: 'submit' }]);

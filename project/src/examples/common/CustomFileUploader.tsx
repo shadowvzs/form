@@ -24,6 +24,6 @@ const CustomFileUploader: IInputProps<File, any>['FileCmp'] = ({ onClick, value 
             style={{ background: 'white', border: '1px solid #777', margin: 'auto', cursor: 'pointer' }}
         />
     );
-}
+};
 
 export default CustomFileUploader;

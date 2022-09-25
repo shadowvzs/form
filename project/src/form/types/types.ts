@@ -11,9 +11,11 @@ export type IErrorMsg = [IErrorText, IErrorParams?];
 
 export type Constructor<T> = new (...args: any) => T;
 
-export interface IConfig<T extends object> extends IFormProps<T> {
-    fields?: Record<keyof T, IFieldProps<unknown, T>>;
+export interface IConfig<T extends object> extends Partial<IFormProps<T>> {
+    fields?: Partial<Record<keyof T, Partial<IFieldProps<unknown, T>>>>;
 }
+
+export type IValueOrGetter<T> = IValue | ((obj: T) => IValue);
 
 export interface IFieldStore<P, T extends object> {
     id: string;
@@ -122,4 +124,4 @@ export interface IFormFieldOptions<T extends object> {
     isDirty: () => boolean;
 }
 
-export type IValidator<V, T extends object> = (value: V, obj?: T) => false | IErrorMsg;
+export type IValidator<V, T extends object> = (value: V, obj: T) => false | IErrorMsg;
