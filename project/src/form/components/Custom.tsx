@@ -5,7 +5,7 @@ import FormContext from '../provider/Provider';
 import { useConstant } from '../utils/react-utils';
 
 import type { ICustomProps, IFieldProps, IFieldStore, IValue } from '../types/types';
-import type FormContextStore from '../store/FormStore';
+import type FormStore from '../store/FormStore';
 import Input from './Input';
 
 export function createCustomChildren<T extends object>(fieldProps: Partial<Record<keyof T, Partial<IFieldProps<IValue, T>>>>, children?: React.ReactNode) {
@@ -22,7 +22,7 @@ export function createCustomChildren<T extends object>(fieldProps: Partial<Recor
 }
 
 function Custom<P extends IValue, T extends object>(props: ICustomProps<P, T>) {
-    const ctx = React.useContext<FormContextStore<T>>(FormContext);
+    const ctx = React.useContext<FormStore<T>>(FormContext);
     const fieldStore = useConstant<IFieldStore<P, T>>(() => ctx.addField(props));
     const { Cmp } = props;
 

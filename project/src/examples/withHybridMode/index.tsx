@@ -5,10 +5,9 @@ import { observer } from 'mobx-react-lite';
 // generic component
 import Form from '../../form/components/Form';
 import delayPromise from '../../form/utils/delayPromise';
-import { useConstant } from '../../form/utils/react-utils';
+import { useConstant, useForm } from '../../form/utils/react-utils';
 import Input from '../../form/components/Input';
 import CustomFileUploader from '../common/CustomFileUploader';
-import FormStore from '../../form/store/FormStore';
 import Custom from '../../form/components/Custom';
 
 // customizations
@@ -27,15 +26,13 @@ const RegisterForm = observer(() => {
         return true;
     }, [])
 
-    const formStore = useConstant(() => new FormStore({ onSubmit }));
-    const registerDto = useConstant(() => new RegisterDto());
+    const formStore = useForm({ onSubmit, entity: new RegisterDto() });
 
     return (
         <div className='register-form4'>
             <h1> "With Hybrid Mode" form </h1>
             <Form<RegisterDto>
                 showErrors
-                entity={registerDto}
                 config={config}
                 store={formStore}
                 onSubmit={onSubmit}

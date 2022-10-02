@@ -1,29 +1,37 @@
-import React from 'react';
-import { action, computed, makeObservable, observable, toJS } from 'mobx';
+import React, { FormHTMLAttributes } from 'react';
+import { action, computed, makeObservable, observable, ObservableMap, ObservableSet, toJS } from 'mobx';
 
 import ErrorStore from './ErrorStore';
 import FieldStore from './FieldStore';
-import { actionDebounce } from '../utils/utils';
-import type { IFieldProps, IFormProps, IFieldStore, IValue } from '../types/types';
-import { getFieldsSettings, getFormSettings } from '../utils/decorators';
 import Input from '../components/Input';
-import translate from '../utils/translate';
 import { createCustomChildren } from '../components/Custom';
+import { actionDebounce } from '../utils/utils';
+import { getFieldsSettings, getFormSettings } from '../utils/decorators';
+import translate from '../utils/translate';
 import Guid from '../utils/Guid';
 import ArrayValueMap from '../utils/ArrayValueMap';
+import { getFormValues, getInputNodeValidators, getInputNodeValue } from '../utils/form-utilities';
+import type { IFieldProps, IFormProps, IFieldStore, IValue, IErrorMsg, IFormStore } from '../types/types';
 
 const FormValidationKey = '*form*';
 
-class FormContextStore<T extends object> {
+class FormStore<T extends object> implements IFormStore<T> {
     private _formProps: Partial<IFormProps<T>> = {};
-    private _fieldsProps: Partial<Record<keyof T, Partial<IFieldProps<IValue, T>>>> = {};
+    private _formRef: HTMLFormElement;
+    private _fieldsProps: Partial<Record<keyof T, Partial<IFieldProps<IValue, T, any>>>> = {};
+    private _fieldMap: ArrayValueMap<IFieldStore<IValue, T, any>> = new ArrayValueMap<IFieldStore<IValue, T, any>>('name');
+
+    // private _fieldMap2 = new ArrayValueMap<IFieldProps1<T, IValue>>('name');
+    private _inputElements = new ArrayValueMap<HTMLInputElement>('name');
+    // private _valueMap = observable.map<keyof T, string>();
+    // private _isDirtyMap = observable.set<keyof T>();
+    // private _isTouchedMap = observable.set<keyof T>();
 
     public id = Guid.newGuid();
 
-    private _fieldMap: ArrayValueMap<IFieldStore<IValue, T>> = new ArrayValueMap<IFieldStore<IValue, T>>('name');
-
     @computed
     public get isDirty(): boolean {
+        // return this._fieldMap2.some(x => x.isDirty);
         return this._fieldMap.some(x => x.isDirty);
     }
 
@@ -35,10 +43,15 @@ class FormContextStore<T extends object> {
     @observable
     public values: T = {} as T;
 
+    public initValues: T = {} as T;
+
     constructor(private _props: IFormProps<T>) {
         makeObservable(this);
         this.errorStore = new ErrorStore<T>();
         this.updateProps(_props);
+        if (_props.uncontrolled) {
+            this.initValues = JSON.parse(JSON.stringify(this.values));
+        }
     }
 
     public updateProps(_props: IFormProps<T>) {
@@ -54,7 +67,17 @@ class FormContextStore<T extends object> {
         return this;
     }
 
-    public defaultFieldValues = () => {
+    public updateInputElements = (): void => {
+        if (!this._formProps) { return; }
+        const inputs = this._formRef.querySelectorAll<HTMLInputElement>('input,select');
+        inputs.forEach(inputElem => {
+            const name = inputElem.name as keyof T;
+            this._inputElements.add(inputElem);
+            this.initValues[name] = getInputNodeValue(inputElem);
+        });
+    }
+
+    private _defaultFieldValues = () => {
         return {
             Cmp: Input,
             type: 'text',
@@ -84,15 +107,30 @@ class FormContextStore<T extends object> {
         (Object.keys(entity) as (keyof T)[]).forEach(key => this.values[key] = entity[key]);
     }
 
+    // itt kellene rendezni mindent mi kozos
+
     @action.bound
     public validate(values: T): void {
-        this._fieldMap
-            .filter(x => !['reset', 'submit'].includes(x.name))
-            .forEach(x => { x.setIsTouched(true); x.validate(values[x.name as keyof T]) });
-        this.errorsValues = this.errorStore.list;
+        const { uncontrolled } = this._props;
+        if (uncontrolled) {
+            this._inputElements.forEach(inputElem => {
+                values[inputElem.name as keyof T] = getInputNodeValue(inputElem);
+            });
+        } else {
+            this._fieldMap
+                .filter(x => !['reset', 'submit'].includes(x.name))
+                .forEach(x => { x.setIsTouched(true); x.validate(values[x.name as keyof T]) });
+        }
         const validator = this._props.validator;
-        const formValidation = typeof validator === 'function' && validator(values)
+        const formValidation = typeof validator === 'function' && validator(values);
         this.errorStore.add(FormValidationKey as unknown as keyof T, [formValidation]);
+        if (uncontrolled) {
+            const errors: IErrorMsg[] = [];
+            this._inputElements.forEach(inputelem => errors.push(...getInputNodeValidators(inputelem)));
+
+            this.errorStore.append(FormValidationKey as unknown as keyof T, errors);
+        }
+        this.errorsValues = this.errorStore.list;
     }
 
     @action.bound
@@ -119,21 +157,84 @@ class FormContextStore<T extends object> {
                     )
                 }
             },
-        }
+        };
     }
 
+    // @action.bound
+    // public setValue(name: keyof T, value: IValue) {
+    //     if (['reset', 'submit'].includes(name as string)) {
+    //         return this.values[name] = value;
+    //     }
+    //     if (value !== this.initValues[name]) {
+    //         this.setIsDirty(true);
+    //     }
+
+    //     const parsedValue = this.getParsedValue(value);
+    //     if (this.isTouched) { this.validate(parsedValue); }
+    //     this.value = value;
+    //     this.form?.setValue!(parsedValue);
+    // }
+
+
+    // public addField2<P>(inputProps: IFieldProps1<P, T>, htmlInput?: boolean): IFieldProps1<T, P> {
+    //     // IFieldProps1
+    //     const { name, type = 'text' } = inputProps;
+    //     const props: IFieldProps1<T, P> = {
+    //         ...inputProps,
+    //         type,
+    //         // form: this,
+    //     } as any;
+
+    //     if (inputProps) {
+    //         props.showErrors = this._formProps.showErrors !== true;
+    //         Object.assign(props, {
+    //             Cmp: props.Cmp || Input,
+    //             showErrors: props.showErrors || this._formProps.showErrors !== true,
+    //         });
+    //     }
+    //     /*
+    //         Cmp: Input,
+    //         type: 'text',
+    //         value: '',
+    //         translateFn: translate,
+    //         showErrors: this._formProps.showErrors !== true        
+    //     */
+
+    //     if (!this._formProps.uncontrolled && type !== 'file') {
+    //         Object.defineProperty(props, 'value', { get: function () { return this.values[name]; } });
+    //         props.onChange = this.onChangeHandler;
+    //     }
+
+    //     Object.defineProperty(props, 'isDirty', { get: function () { return this.values[name] !== this.initialValue[name] || ''; } });
+
+
+    //     // @action.bound
+    //     // public setValueDebounce(value: IValue) {
+    //     //     this.values[name] = value;
+    //     //     const { debounceTime } = this._formProps;
+    //     //     if (debounceTime) {
+    //     //         actionDebounce(
+    //     //             () => this.onSubmit(),
+    //     //             debounceTime,
+    //     //             `form-${this.id}`
+    //     //         )
+    //     //     }
+    //     // }
+    // }
+
     @action.bound
-    public addField<P>(inputProps: IFieldProps<P, T>): IFieldStore<P, T> {
+    public addField<P, H = HTMLInputElement>(inputProps: IFieldProps<P, T, H>): IFieldStore<P, T, H> {
         const name = inputProps.name as keyof T;
-        const fieldStore = new FieldStore<P, T>(
+        const fieldStore = new FieldStore<P, T, H>(
             {
-                ...this.defaultFieldValues(),
+                ...this._defaultFieldValues(),
                 ...this._fieldsProps[name],
                 ...inputProps
-            } as IFieldProps<P, T>,
+            } as IFieldProps<P, T, H>,
             this.createFieldHelpers(name)
         );
         this._fieldMap.add(fieldStore);
+        if (typeof this.initValues[name] === 'undefined') { this.initValues[name] = fieldStore.value; }
         return fieldStore;
     }
 
@@ -142,14 +243,22 @@ class FormContextStore<T extends object> {
     }
 
     public onReset = (): void => {
-        Object.values<IFieldStore<IValue, T>>(this._fieldMap).forEach(x => x.onReset());
+        if (this._props.uncontrolled) {
+            const inputs = this._formRef.querySelectorAll<HTMLInputElement>('input,select');
+            inputs.forEach(inputElem => {
+                inputElem.value = String(this.initValues[inputElem.name as keyof T]);
+            });
+        } else {
+            Object.values<IFieldStore<IValue, T>>(this._fieldMap).forEach(x => x.onReset());
+        }
     }
 
-    public getProps() {
+    public getProps(): Omit<IFormProps<T>, 'onSubmit'> & Pick<HTMLFormElement, 'onSubmit'> {
         const props = {
             id: this.id,
             noValidate: true,
             ...this._formProps,
+            ref: (el: HTMLFormElement) => this._formRef = el,
             onSubmit: this.onSubmit,
             onReset: this.onReset,
         };
@@ -162,6 +271,35 @@ class FormContextStore<T extends object> {
         // remove props which isn't for the dom
         const blacklistedProps = ['debounceTime', 'autoGenerate', 'translateFn', 'entity', 'config'];
         blacklistedProps.forEach(propName => Reflect.deleteProperty(props, propName));
+        return props as Omit<IFormProps<T>, 'onSubmit'> & Pick<HTMLFormElement, 'onSubmit'>;
+    }
+
+    @action.bound
+    public onChangeHandler(ev: React.ChangeEvent<HTMLInputElement | HTMLInputElement>) {
+        const target = ev.currentTarget || ev.target;
+        const value = getInputNodeValue(target);
+        this.values[target.name as keyof T] = value;
+    }
+
+    public getInputProps = (name: keyof T, { type }: { type?: 'checkbox' | 'file' } = {}) => {
+        const props: Record<string, any> = {
+            onChange: this.onChangeHandler,
+        };
+
+        switch (type) {
+            case 'file':
+                break;
+            case 'checkbox':
+                Object.assign(props, {
+                    checked: this.values[name] || this.initValues[name] || false
+                });
+            default:
+                Object.assign(props, {
+                    value: this.values[name] || this.initValues[name] || false,
+                });
+                break;
+        }
+
         return props;
     }
 
@@ -170,7 +308,10 @@ class FormContextStore<T extends object> {
             ev.stopPropagation();
             ev.preventDefault();
         }
-        const values = toJS(this.values);
+
+        const values = this._props.uncontrolled
+            ? getFormValues<T>(this._formRef)
+            : toJS(this.values);
         if (!skipValidation) {
             this.validate(values);
             const errors = this.errorsValues;
@@ -184,14 +325,22 @@ class FormContextStore<T extends object> {
         }
         this._props.onSubmit(values).then(x => {
             if (!x) { return; }
-            this._fieldMap.forEach(field => {
-                field.initialValue = field.value;
-                field.setIsDirty(false);
-                field.setIsTouched(false);
-            });
+            if (this._props.uncontrolled) {
+                const inputs = this._formRef.querySelectorAll<HTMLInputElement>('input,select');
+                inputs.forEach(inputElem => {
+                    this.initValues[inputElem.name as keyof T] = inputElem.value as unknown as T[keyof T];
+                });
+            } else {
+                this._fieldMap.forEach(field => {
+                    field.initialValue = field.value;
+                    field.setIsDirty(false);
+                    field.setIsTouched(false);
+                });
+
+            }
         });
         return false;
     }
 }
 
-export default FormContextStore;
+export default FormStore;

@@ -63,10 +63,10 @@ const validatorMap = {
     max: <V>(max: number, errorMsg: string = 'TOO_HIGH') => (value: V) => {
         return typeof value === 'number' && value > max && [errorMsg, [max]] as IErrorMsg;
     },
-    isNumber: (errorMsg: string = 'NOT_A_NUMBER') => (value: IValue) => !isNaN(Number(value)) && [errorMsg] as IErrorMsg,
+    isNumber: <V>(errorMsg: string = 'NOT_A_NUMBER') => (value: IValue) => !isNaN(Number(value)) && [errorMsg] as IErrorMsg,
     rule: <V>(rule: keyof IRules, errorMsg: string = 'INVALID_FORMAT') => (value: V) => typeof value === 'string' && !validate(value, rule) && [errorMsg, [rule]] as IErrorMsg,
-    isChecked: (errorMsg: string = 'MUST_BE_CHECKED') => (value: boolean) => !value && [errorMsg] as IErrorMsg,
-    required: (errorMsg: string = 'IS_REQUIRED') => (value: unknown) => {
+    isChecked: <V>(errorMsg: string = 'MUST_BE_CHECKED') => (value: boolean) => !value && [errorMsg] as IErrorMsg,
+    required: <V>(errorMsg: string = 'IS_REQUIRED') => (value: unknown) => {
         return (
             !value ||
             (typeof value === 'string' && !value.trim()) ||

@@ -6,34 +6,34 @@ import { cn } from '../utils/utils';
 import { useConstant } from '../utils/react-utils';
 
 import type { ICustomFormFieldProps, IFieldStore, ISelectProps, IValue } from '../types/types';
-import type FormContextStore from '../store/FormStore';
+import type FormStore from '../store/FormStore';
 
-function Select<P extends IValue, T extends object>(props: ISelectProps<P, T> | ICustomFormFieldProps<P, T>) {
-    const ctx = React.useContext<FormContextStore<T>>(FormContext);
-    const fieldStore = useConstant<IFieldStore<P, T>>(() => (props as ICustomFormFieldProps<P, T>).fieldStore || ctx.addField(props as ISelectProps<P, T>));
+function Select<P extends IValue, T extends object>(props: ISelectProps<P, T, HTMLSelectElement> | ICustomFormFieldProps<P, T, HTMLSelectElement>) {
+    const ctx = React.useContext<FormStore<T>>(FormContext);
+    const fieldStore = useConstant<IFieldStore<P, T, HTMLSelectElement>>(() => (props as ICustomFormFieldProps<P, T, HTMLSelectElement>).fieldStore || ctx.addField(props as ISelectProps<P, T, HTMLSelectElement>));
     const {
-        className,
         fieldClassName,
         fieldStyle,
+        label,
         labelStyle,
         labelClassName,
         options,
         showErrors,
-        ...inputProps
-    } = fieldStore.getProps() as ISelectProps<P, T>;
+        props: inputProps
+    } = fieldStore.getData();
 
-    const { name, label } = inputProps;
+    const { name } = inputProps;
     const id = `${ctx.id}-${name || fieldStore.id}`;
 
     return (
         <div style={fieldStyle} className={cn('form-field', fieldStore.errors.length > 0 && 'error', fieldClassName)}>
             <label htmlFor={id} style={labelStyle} className={cn('form-label', labelClassName)}>{label}</label>
             <select
-                className={cn('form-input', className)}
+                className={cn('form-input', inputProps.className)}
                 id={id}
                 {...inputProps}
             >
-                {options.map(({ label, value }) => (
+                {options && options.map(({ label, value }) => (
                     <option value={value} key={value}> {label} </option>
                 ))}
             </select>

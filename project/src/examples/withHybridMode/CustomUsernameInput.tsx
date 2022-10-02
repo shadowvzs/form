@@ -17,7 +17,7 @@ const CustomUsernameInput: ICustomProps<string, RegisterDto>['Cmp'] = observer((
             <label htmlFor='username' className='form-label'> Username: </label>
             <input
                 id='username'
-                {...fieldStore.getProps(['showErrors']) as any}
+                {...fieldStore.getData().props}
                 value={fieldStore.value}
             />
         </div>

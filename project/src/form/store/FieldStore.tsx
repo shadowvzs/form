@@ -1,8 +1,9 @@
-import type { FormEvent, FocusEvent } from 'react';
+import type { FormEvent, FocusEvent, HTMLAttributes, HTMLInputTypeAttribute, RefCallback } from 'react';
 import { action, computed, makeObservable, observable } from 'mobx';
 
 import type {
     IErrorMsg,
+    IFieldData,
     IFieldProps,
     IFieldStore,
     IFormFieldOptions,
@@ -13,60 +14,25 @@ import type {
 
 import Guid from '../utils/Guid';
 import validatorMap from '../validators/validatorMap';
+import { getInputNodeValue, inputType2VarType, getInputDefaultValue } from '../utils/form-utilities';
+import React from 'react';
 
-const defaultValues = {
-    submit: 'submit',
-    reset: 'reset',
-    text: '',
-    email: '',
-    number: 0,
-    checkbox: false,
-    radio: '',
-    password: '',
-    color: '#ffffff',
-    date: '',
-    'datetime-local': '',
-    time: '',
-    month: '',
-    week: '',
-    range: '',
-    file: []
-} as const;
-
-const inputType2VarType = {
-    submit: 'string',
-    reset: 'string',
-    text: 'string',
-    email: 'string',
-    number: 'number',
-    checkbox: 'boolean',
-    radio: 'string',
-    password: 'string',
-    date: 'string',
-    'datetime-local': 'string',
-    month: 'string',
-    week: 'string',
-    time: 'string',
-    color: 'string',
-    range: 'number',
-    file: 'file'
-
-} as const;
-
-class FieldStore<P, T extends object> implements IFieldStore<P, T> {
-
-    public id: string = Guid.newGuid();;
-
-    public initialValue: IValue;
+class FieldStore<P, T extends object, H = HTMLInputElement> implements IFieldStore<P, T, H> {
 
     private _validators: IValidator<P, T>[] = [];
+    private _props: IFieldProps<P, T, H> = {} as IFieldProps<P, T, H>;
+    private _valueParser: (value: IValue) => IValue;
 
-    private _props: IFieldProps<P, T> = {} as IFieldProps<P, T>;
+    public id: string = Guid.newGuid();
+    public initialValue: IValue;
 
     public get name() { return this._props.name || this.id; }
 
+    public element: HTMLInputElement | HTMLSelectElement | null = null;
+
     @observable
     public value: IValue = '';
+    public parsedValue: IValue = '';
 
     @action.bound
     public setValue(value: IValue) {
@@ -77,10 +43,10 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
             this.setIsDirty(true);
         }
 
-        const parsedValue = this.getParsedValue(value);
-        if (this.isTouched) { this.validate(parsedValue); }
+        this.parsedValue = this.getParsedValue(value);
+        if (this.isTouched) { this.validate(this.parsedValue); }
         this.value = value;
-        this.form?.setValue!(parsedValue);
+        this.form?.setValue!(this.parsedValue);
     }
 
     @observable
@@ -109,11 +75,12 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
     public setIsTouched(isTouched: boolean) { this.isTouched = isTouched; }
 
     constructor(
-        _props: IFieldProps<P, T>,
+        _props: IFieldProps<P, T, H>,
         public form: IFormFieldOptions<T>
     ) {
         makeObservable(this);
-        this.createProps(_props);
+        if (!_props['type']) { _props['type'] = 'text'; }
+        this._props = _props;
         this.createValidators(_props);
         this.initialValue = _props.value || this.getDefaultValue();
         this.setValue(this.initialValue);
@@ -129,16 +96,36 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         return this.errors.length === 0;
     }
 
-    public getProps(blacklistedProps: string[] = []) {
-        const props = {
-            type: 'text',
-            checked: this._props['type'] === 'checkbox' ? ['1', 1, true, 'true'].includes(this.value) : undefined,
-            ...this._props,
-            value: this.value,
-            onChange: this.onChangeHandler,
-            onFocus: this.onFocusHandler,
-            onBlur: this.onBlurHandler
-        } as IFieldProps<P, T>;
+    public getData(): IFieldData<T, P, H> {
+
+        const {
+            showErrors,
+            options,
+            validators,
+            translateFn,
+            Cmp,
+            FileCmp,
+            label,
+            ...rest
+        } = this._props as IInputProps<P, T>;
+
+        const data = {
+            props: {
+                type: 'text',
+                checked: this._props['type'] === 'checkbox' ? ['1', 1, true, 'true'].includes(this.value) : undefined,
+                ref: (element: HTMLInputElement | HTMLSelectElement) => this.element = element,
+                ...rest,
+            } as React.InputHTMLAttributes<H>,
+            showErrors: showErrors === undefined ? (!this.form.props.showErrors && this.errors.length > 0) : showErrors,
+            isDirty: this.isDirty,
+            isTouched: this.isTouched,
+            value: this.parsedValue,
+            options,
+            label,
+            Cmp,
+        } as IFieldData<T, P, H>;
+
+        const props = data.props;
 
         // handle autoDisable for submit & reset
         if (this.form && this.form.props.autoDisable && props['disabled'] === undefined) {
@@ -149,30 +136,30 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
             }
         }
 
-        if (props.options && props.type && ['text', 'search'].includes(props.type)) {
-            (props as IInputProps<P, T>).list = this.id + 'List';
+        if (options && props.type && ['text', 'search'].includes(props.type)) {
+            props.list = this.id + 'List';
         }
 
-        if (props.showErrors === undefined) {
-            props.showErrors = !this.form.props.showErrors && this.errors.length > 0;
+        // IFieldData<T, P>;
+        if (props.type !== 'file') {
+            Object.assign(props, {
+                value: this.value,
+                onChange: this.onChangeHandler,
+                onFocus: this.onFocusHandler,
+                onBlur: this.onBlurHandler
+            });
+        } else if (FileCmp) {
+            props.style = { display: 'none' };
         }
 
-        // remove props which isn't for the dom
-        blacklistedProps = ['Cmp', 'translateFn', 'validators', 'cast', ...blacklistedProps];
-        if (props.type === 'file') {
-            if ((props as IInputProps<unknown, T>).FileCmp) {
-                props.style = { display: 'none' };
-            }
-            blacklistedProps.push('value', 'onChange');
-        }
-        blacklistedProps.forEach(propName => Reflect.deleteProperty(props, propName));
-        return props;
+        return data;
     }
 
     public getParsedValue = (value = this.value) => {
-        const { cast, valueParser } = this._props;
+        const { valueParser } = this._props;
 
         if (typeof valueParser === 'function') { return valueParser(value); }
+        const cast = inputType2VarType[this._props.type! as keyof typeof inputType2VarType];
 
         switch (cast) {
             case 'boolean':
@@ -184,38 +171,26 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         }
     }
 
-    public setTypeBasedValue(node: HTMLInputElement | HTMLSelectElement): void {
-        const { type } = this._props;
-        const value = node.value as string;
-        const files = node instanceof HTMLInputElement && node.files;
-        if (type === 'file') {
-            if (files) {
-                this.setValue(this._props.multiple ? Array.from(files) : files[0]);
-            }
-        } else if (type === 'checkbox') {
-            this.setValue(!this.value);
-        } else {
-            this.setValue(value || defaultValues[type!] || '');
-        }
+    public setTypeBasedValue(node: HTMLInputElement | HTMLSelectElement) {
+        this.setValue(getInputNodeValue(node));
     }
 
-    private onChangeHandler = (ev: FormEvent<HTMLInputElement | HTMLSelectElement | any>) => {
+    private onChangeHandler = (ev: FormEvent<H | any>) => {
         const { onChange } = this._props;
         this.setTypeBasedValue(ev.currentTarget);
-        if (onChange) { onChange(ev); }
+        if (onChange) { onChange(ev as any); }
     }
 
-    private onFocusHandler = (ev: FocusEvent<HTMLInputElement | HTMLSelectElement | any>) => {
+    private onFocusHandler = (ev: FocusEvent<H | any>) => {
         this.setIsTouched(true);
         if (this._props.onFocus) {
             this._props.onFocus(ev);
         }
     }
 
-    private onBlurHandler = (ev: FocusEvent<HTMLInputElement | HTMLSelectElement | any>) => {
+    private onBlurHandler = (ev: FocusEvent<H | any>) => {
         if (['submit', 'reset', 'checkbox', 'radio'].includes(this._props.type!)) { return; }
-        const node = ev.currentTarget;
-        this.setTypeBasedValue(node);
+        this.setTypeBasedValue(ev.currentTarget);
         if (this._props.onBlur) {
             this._props.onBlur(ev);
         }
@@ -227,12 +202,13 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
     }
 
     public getDefaultValue(): IValue {
-        if (this._props.defaultValue) { return this._props.defaultValue; }
-        if (this._props.options && this._props.type === 'radio') { return this._props.options[0].value; }
-        return this._props.defaultValue || defaultValues[this._props.type || 'text'] as IValue;
+        const { defaultValue, options, type, multiple } = this._props;
+        if (defaultValue) { return defaultValue; }
+        if (options && type === 'radio') { return options[0].value; }
+        return defaultValue || getInputDefaultValue({ type, multiple }) as IValue;
     }
 
-    private createValidators = (_props: IFieldProps<P, T>) => {
+    private createValidators = (_props: IFieldProps<P, T, H>) => {
 
         const {
             type = 'text',
@@ -255,8 +231,8 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
 
     private validateString = (validators: IValidator<P, T>[]) => {
         const {
-            minLength = 0,
-            maxLength = Number.MAX_SAFE_INTEGER,
+            minLength,
+            maxLength,
             rule,
             required,
             type,
@@ -313,15 +289,6 @@ class FieldStore<P, T extends object> implements IFieldStore<P, T> {
         if (required) {
             validators.push(validatorMap.required());
         }
-    }
-
-    private createProps(_props: IFieldProps<P, T>) {
-        const inputProps = _props as IInputProps<P, T>;
-        const props = {
-            cast: inputProps.cast || inputType2VarType[_props.type!],
-            ..._props,
-        };
-        this._props = props;
     }
 }
 

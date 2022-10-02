@@ -246,7 +246,7 @@ const RegisterForm = () => {
 export type IFormProps<T extends object> = Omit<React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement>, 'onSubmit'> & {
     autoDisable?: boolean; // enable or disable the inputs with type 'submit' and 'reset'
     autoGenerate?: boolean; // if it is enabled then auto generate the input children for the form
-    store?: FormContextStore<T>; // if we want provide an external formContextStore
+    store?: FormStore<T>; // if we want provide an external formStore
     entity?: T;
     config?: IConfig<T>;
     showErrors?: boolean; // show form errors
@@ -260,16 +260,15 @@ export type IFormProps<T extends object> = Omit<React.DetailedHTMLProps<React.Fo
 
 
 export type ITranslateFn = (str: string, params?: (string | number)[], options?: Record<string, any>) => string;
-export type ICustomFormFieldProps<V, T extends object> = { fieldStore: IFieldStore<V, T> };
+export type ICustomFormFieldProps<V, T extends object, H = HTMLInputElement> = { fieldStore: IFieldStore<V, T, H> };
 
-export interface ICommonInputProps<V, T extends object> {
+export interface ICommonInputProps<V, T extends object, H = HTMLInputElement> {
     name: keyof T;
 
     value?: IValue;
     defaultValue?: IValue;
     disabled?: boolean;
     label?: string | JSX.Element;
-    cast?: 'number' | 'string' | 'boolean' | 'file';
     valueParser?: (value: IValue) => IValue;
 
     labelStyle?: React.CSSProperties;
@@ -281,7 +280,7 @@ export interface ICommonInputProps<V, T extends object> {
     entity?: T;
     validators?: IValidator<V, T>[];
     translateFn?: ITranslateFn;
-    Cmp?: ({ fieldStore }: ICustomFormFieldProps<V, T>) => JSX.Element | null;
+    Cmp?: ({ fieldStore }: ICustomFormFieldProps<V, T, H>) => JSX.Element | null;
     errorRender?: (errors: string[]) => JSX.Element; // custom form error renderer
 }
 

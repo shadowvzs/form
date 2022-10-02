@@ -16,13 +16,28 @@ class ErrorStore<T extends object> extends Map<keyof T, string[]> {
     public add(key: keyof T, value: (IErrorMsg | false)[]) {
         value = value.filter(Boolean);
         if (value.length > 0) {
-            const messages = (value as IErrorMsg[]).map(([str, params]) => (key as string) + ': ' + this._translate(str, params));
+            const prefix = this.getPrefix(key);
+            const messages = (value as IErrorMsg[]).map(([str, params]) => prefix + this._translate(str, params));
             this.set(key, messages);
         } else {
             this.delete(key);
         }
         this.setTotalSize();
         return this;
+    }
+
+    private getPrefix = (key: keyof T) => (key as string)[0] === '*' ? '' : (key as string) + ': ';
+
+    public append(key: keyof T, value: (IErrorMsg | false)[]) {
+        if (this.has(key)) {
+            const messages = this.get(key)!;
+            const prefix = this.getPrefix(key);
+            const newMessages = (value.filter(Boolean) as IErrorMsg[]).map(([str, params]) => prefix + this._translate(str, params));
+            messages.push(...newMessages);
+            this.set(key, messages)
+        } else {
+            return this.add(key, value);
+        }
     }
 
     public get list() {

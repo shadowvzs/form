@@ -1,6 +1,6 @@
 import React from 'react';
-import FormContextStore from '../store/FormStore';
+import FormStore from '../store/FormStore';
 
-const FormContext = React.createContext<FormContextStore<any>>(null!);
+const FormContext = React.createContext<FormStore<any>>(null!);
 
 export default FormContext;

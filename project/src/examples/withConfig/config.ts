@@ -8,6 +8,7 @@ const config = {
     showErrors: true,
     fields: {
         username: {
+            minLength: 3,
             rule: 'ALPHA_NUM',
             label: 'Username: '
         },

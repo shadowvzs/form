@@ -5,33 +5,35 @@ import FormContext from '../provider/Provider';
 import { cn } from '../utils/utils';
 import { useConstant } from '../utils/react-utils';
 
-import type { ICustomFormFieldProps, IFieldStore, IInputProps, IValue } from '../types/types';
-import type FormContextStore from '../store/FormStore';
+import type { ICustomFormFieldProps, IFieldData, IFieldStore, IInputProps, IValue } from '../types/types';
+import type FormStore from '../store/FormStore';
 import ErrorListRender from './ErrorMessage';
 
 function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | ICustomFormFieldProps<P, T>) {
-    const ctx = React.useContext<FormContextStore<T>>(FormContext);
+    const ctx = React.useContext<FormStore<T>>(FormContext);
     const fieldStore = useConstant<IFieldStore<P, T>>(() => (props as ICustomFormFieldProps<P, T>).fieldStore || ctx.addField(props as IInputProps<P, T>));
     const {
-        className,
         fieldClassName,
         fieldStyle,
         labelStyle,
         labelClassName,
         showErrors,
+        label,
         FileCmp,
         errorRender,
         options,
-        ...inputProps
-    } = fieldStore.getProps() as IInputProps<P, T>;
-    const id = fieldStore.id;
-    const { label, type } = inputProps;
+        props: inputProps
+    } = fieldStore.getData() as IFieldData<T, P>;
+    console.log(fieldStore.getData())
+    const { id, element } = fieldStore;
 
-    const inputRef = React.useRef<HTMLInputElement>(null);
+    const { type } = inputProps;
+
+
     React.useLayoutEffect(() => {
-        if (type !== 'file' || !inputRef.current) { return; }
-        inputRef.current.onchange = ev => fieldStore.setTypeBasedValue(ev.target as HTMLInputElement);
-    }, [type, inputRef, fieldStore]);
+        if (type !== 'file' || !element) { return; }
+        element.onchange = (ev: Event) => fieldStore.setTypeBasedValue(ev.target as HTMLInputElement);
+    }, [type, fieldStore, element]);
 
     if (type === 'radio' && Array.isArray(options) && options.length > 1) {
         return (
@@ -40,7 +42,7 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
                 {options.map(({ label, value }, idx) => (
                     <div key={idx}>
                         <input
-                            className={cn('form-input', className)}
+                            className={cn('form-input', inputProps.className)}
                             id={id + '-' + idx}
                             {...inputProps}
                             checked={value === fieldStore.value}
@@ -62,12 +64,11 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
         >
             {label && <label htmlFor={id} style={labelStyle} className={cn('form-label', labelClassName)}>{label}</label>}
             <input
-                className={cn('form-input', className)}
+                className={cn('form-input', inputProps.className)}
                 id={id}
-                ref={inputRef}
                 {...inputProps}
             />
-            {FileCmp && <FileCmp onClick={() => { inputRef.current?.click(); }} fieldStore={fieldStore} value={fieldStore.value} />}
+            {FileCmp && <FileCmp onClick={() => { element?.click(); }} fieldStore={fieldStore} value={fieldStore.value} />}
             {options && (
                 <datalist id={id + 'List'}>
                     {options.map(({ label, value }, idx) => (<option value={value} key={idx}>{label}</option>))}

@@ -33,7 +33,7 @@ const RegisterForm = () => {
                 <Input name='fullname' rule='NAME' label='Fullname: ' minLength={6} />
                 <Input name='email' type='email' label='Email: ' required />
                 <Input name='password' type='password' rule='LOW_UP_NUM' label='Password: ' minLength={8} />
-                <Input name='agree' type='checkbox' label='I Agree: ' validators={[validatorMap.isChecked('Please check in the agreement')]} value={false} />
+                <Input name='agree' type='checkbox' label='I Agree: ' validators={[validatorMap.isChecked<boolean>('Please check in the agreement')]} value={false} />
                 <Input name='sex' type='radio' options={[{ label: 'Male', value: 'm' }, { label: 'Female', value: 'f' }]} />
                 <Input name='image' type='file' FileCmp={CustomFileUploader} validators={[validatorMap.allowedType('image'), validatorMap.maxSize(2 * 1024 * 1024)]} />
 
