@@ -1,4 +1,4 @@
-import React, { FormHTMLAttributes } from 'react';
+import React, { FormHTMLAttributes, InputHTMLAttributes } from 'react';
 import { action, computed, makeObservable, observable, ObservableMap, ObservableSet, toJS } from 'mobx';
 
 import ErrorStore from './ErrorStore';
@@ -20,12 +20,7 @@ class FormStore<T extends object> implements IFormStore<T> {
     private _formRef: HTMLFormElement;
     private _fieldsProps: Partial<Record<keyof T, Partial<IFieldProps<IValue, T, any>>>> = {};
     private _fieldMap: ArrayValueMap<IFieldStore<IValue, T, any>> = new ArrayValueMap<IFieldStore<IValue, T, any>>('name');
-
-    // private _fieldMap2 = new ArrayValueMap<IFieldProps1<T, IValue>>('name');
     private _inputElements = new ArrayValueMap<HTMLInputElement>('name');
-    // private _valueMap = observable.map<keyof T, string>();
-    // private _isDirtyMap = observable.set<keyof T>();
-    // private _isTouchedMap = observable.set<keyof T>();
 
     public id = Guid.newGuid();
 
@@ -71,6 +66,9 @@ class FormStore<T extends object> implements IFormStore<T> {
         if (!this._formProps) { return; }
         const inputs = this._formRef.querySelectorAll<HTMLInputElement>('input,select');
         inputs.forEach(inputElem => {
+            if (inputElem.type === 'submit') {
+                inputElem.onclick = (ev: any) => this.onSubmit();
+            }
             const name = inputElem.name as keyof T;
             this._inputElements.add(inputElem);
             this.initValues[name] = getInputNodeValue(inputElem);
@@ -281,12 +279,14 @@ class FormStore<T extends object> implements IFormStore<T> {
         this.values[target.name as keyof T] = value;
     }
 
-    public getInputProps = (name: keyof T, { type }: { type?: 'checkbox' | 'file' } = {}) => {
+    public getInputProps = <E = HTMLInputElement>(name: keyof T, givenProps: InputHTMLAttributes<E> = {}) => {
         const props: Record<string, any> = {
             onChange: this.onChangeHandler,
+            name,
+            ...givenProps
         };
 
-        switch (type) {
+        switch (givenProps.type) {
             case 'file':
                 break;
             case 'checkbox':
@@ -295,7 +295,7 @@ class FormStore<T extends object> implements IFormStore<T> {
                 });
             default:
                 Object.assign(props, {
-                    value: this.values[name] || this.initValues[name] || false,
+                    defaultValue: this.values[name] || this.initValues[name] || '',
                 });
                 break;
         }

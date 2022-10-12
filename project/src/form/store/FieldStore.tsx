@@ -96,7 +96,7 @@ class FieldStore<P, T extends object, H = HTMLInputElement> implements IFieldSto
         return this.errors.length === 0;
     }
 
-    public getData(): IFieldData<T, P, H> {
+    public getData = (): IFieldData<T, P, H> => {
 
         const {
             showErrors,
@@ -113,7 +113,12 @@ class FieldStore<P, T extends object, H = HTMLInputElement> implements IFieldSto
             props: {
                 type: 'text',
                 checked: this._props['type'] === 'checkbox' ? ['1', 1, true, 'true'].includes(this.value) : undefined,
-                ref: (element: HTMLInputElement | HTMLSelectElement) => this.element = element,
+                ref: (element: HTMLInputElement | HTMLSelectElement) => {
+                    this.element = element;
+                    if (element && this._props.type === 'file') {
+                        element.onchange = (ev: Event) => this.setTypeBasedValue(ev.target as HTMLInputElement);
+                    }
+                },
                 ...rest,
             } as React.InputHTMLAttributes<H>,
             showErrors: showErrors === undefined ? (!this.form.props.showErrors && this.errors.length > 0) : showErrors,
@@ -122,6 +127,7 @@ class FieldStore<P, T extends object, H = HTMLInputElement> implements IFieldSto
             value: this.parsedValue,
             options,
             label,
+            FileCmp,
             Cmp,
         } as IFieldData<T, P, H>;
 
@@ -148,8 +154,11 @@ class FieldStore<P, T extends object, H = HTMLInputElement> implements IFieldSto
                 onFocus: this.onFocusHandler,
                 onBlur: this.onBlurHandler
             });
-        } else if (FileCmp) {
-            props.style = { display: 'none' };
+        } else {
+            Reflect.deleteProperty(props, 'value');
+            if (FileCmp) {
+                props.style = { display: 'none' };
+            }
         }
 
         return data;

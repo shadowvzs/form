@@ -24,16 +24,9 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
         options,
         props: inputProps
     } = fieldStore.getData() as IFieldData<T, P>;
-    console.log(fieldStore.getData())
+
     const { id, element } = fieldStore;
-
     const { type } = inputProps;
-
-
-    React.useLayoutEffect(() => {
-        if (type !== 'file' || !element) { return; }
-        element.onchange = (ev: Event) => fieldStore.setTypeBasedValue(ev.target as HTMLInputElement);
-    }, [type, fieldStore, element]);
 
     if (type === 'radio' && Array.isArray(options) && options.length > 1) {
         return (
@@ -68,7 +61,7 @@ function Input<P extends IValue, T extends object>(props: IInputProps<P, T> | IC
                 id={id}
                 {...inputProps}
             />
-            {FileCmp && <FileCmp onClick={() => { element?.click(); }} fieldStore={fieldStore} value={fieldStore.value} />}
+            {FileCmp && <FileCmp onClick={() => { fieldStore.element?.click(); }} fieldStore={fieldStore} value={fieldStore.value} />}
             {options && (
                 <datalist id={id + 'List'}>
                     {options.map(({ label, value }, idx) => (<option value={value} key={idx}>{label}</option>))}
